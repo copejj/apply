@@ -1,122 +1,220 @@
+name: Secure Build and Shadow DB Migration Deploy
+
 on:
-    release:
-        types: [published]
-    workflow_dispatch: 
-        inputs:
-            test_tag:
-                description: 'Tag to use for testing (e.g. v1.0.0-test)'
-                required: false
-                default: 'testing'
+  release:
+    types: [published]
+  workflow_dispatch: 
+    inputs:
+      test_tag:
+        description: 'Tag to use for testing (e.g. v1.0.0-test)'
+        required: false
+        default: 'testing'
 
 jobs:
-    deploy-to-production:
-        runs-on: ubuntu-latest
-        steps:
-            -   name: Execute Remote Deployment
-                uses: appleboy/ssh-action@v1.2.0
-                with:
-                    host: ${{ vars.PROD_HOST }}
-                    port: ${{ secrets.SSH_PRIVATE_PORT }}
-                    username: ${{ secrets.SSH_PRIVATE_USERNAME }}
-                    key: ${{ secrets.SSH_PRIVATE_KEY }}
-                    # IMPORTANT: All variables used in the script must be listed here
-                    envs: DB_NAME,DB_USER,DB_PASS,DB_HOST,TAG_NAME
+  # --- JOB 1: SECURE CLOUD COMPILATION (OFF-SERVER) ---
+  build-application:
+    runs-on: ubuntu-24.04
+    outputs:
+      tag_name: ${{ steps.determine-tag.outputs.TAG_NAME }}
+    steps:
+      - name: Determine Tag
+        id: determine-tag
+        run: |
+          TAG="${{ github.event.inputs.test_tag || github.event.release.tag_name }}"
+          echo "TAG_NAME=$TAG" >> $GITHUB_OUTPUT
 
-                    script: |
-                        CURRENT_STEP="INITIALIZATION"
-                        # 1. Initialization and Output
-                        echo "[Step 1/7] --- Starting Deployment for $TAG_NAME ---"
-                        cd ${{ vars.PROD_APP_PATH }}
-                        export PGPASSWORD="$DB_PASS"
-                        
-                        # Specific args for psql vs pg_dump
-                        PSQL_ARGS="-h $DB_HOST -U $DB_USER -d $DB_NAME -t --set ON_ERROR_STOP=1"
-                        DUMP_ARGS="-h $DB_HOST -U $DB_USER -d $DB_NAME --no-subscriptions --no-publications -x -O"
-                        
-                        BACKUP_FILE="/tmp/pre_deploy_backup_$(date +%F_%H%M%S).sql"
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.test_tag || github.event.release.tag_name }}
+          fetch-depth: 0
+          fetch-tags: true
 
-                        # Define cleanup_on_failure
-                        cleanup_on_failure() {
-                            EXIT_CODE=$?
-                            if [ $EXIT_CODE -ne 0 ]; then
-                                echo "!!! ERROR DETECTED in Step: $CURRENT_STEP (Exit Code: $EXIT_CODE) !!!"
-                                
-                                # ONLY rollback DB if the failure happened during Step 4 (Migrations)
-                                if [ "$CURRENT_STEP" == "DATABASE_MIGRATION" ] && [ -f "$BACKUP_FILE" ]; then
-                                    echo "Rolling back database to $BACKUP_FILE..."
-                                    psql $PSQL_ARGS -c "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public; ALTER SCHEMA public OWNER TO $DB_USER; GRANT ALL ON SCHEMA public TO public;"
-                                    psql $PSQL_ARGS -f "$BACKUP_FILE"
-                                fi
-                                
-                                git checkout .
-                                rm -f "$BACKUP_FILE"
-                                exit $EXIT_CODE
-                            fi
-                        }
-                        trap cleanup_on_failure ERR
+      - name: Set up JDK & Maven Environment
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
 
-                        CURRENT_STEP="DATABASE_BACKUP"
-                        # 2. Database Backup
-                        echo "[Step 2/7] Creating pre-deployment database backup..."
-                        pg_dump $DUMP_ARGS -f "$BACKUP_FILE" || true
-                        echo "Backup saved to $BACKUP_FILE"
+      - name: Build WAR File Off-Server
+        run: mvn clean package -DskipTests -Dgit.branch="${{ github.event.inputs.test_tag || github.event.release.tag_name }}"
 
-                        CURRENT_STEP="SOURCE_CHECKOUT"
-                        # 3. Sync Code
-                        echo "[Step 3/7] Fetching code for tag: $TAG_NAME"
-                        git fetch --tags --all
-                        # git checkout "$TAG_NAME"
-                        git checkout -B "release-$TAG_NAME" "$TAG_NAME"
+      - name: Upload WAR Artifact to GitHub Cloud
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-war-package
+          path: target/${{ vars.PROD_APP_NAME }}.war
 
-                        CURRENT_STEP="DATABASE_MIGRATION"
-                        # 4. Database Migrations (The "No-Backslash" version)
-                        echo "[Step 4/7] Running database migrations..."
-                        psql $PSQL_ARGS -c "BEGIN;" -f sql/init_schema.sql -c "COMMIT;"
+  # --- JOB 2: REMOTE DEPLOYMENT & SHADOW DB MIGRATIONS ---
+  deploy-to-production:
+    needs: build-application
+    runs-on: ubuntu-24.04
+    env:
+      TAG_NAME: ${{ needs.build-application.outputs.tag_name }}
+    steps:
+      - name: Download Pre-Built WAR Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deployment-war-package
+          path: .
 
-                        FILES=$(find sql/migrations -regextype posix-extended -regex ".*/[0-9]{8}_[0-9]+.*\.sql" | sort)
-                        for FILE in $FILES; do
-                            FILENAME=$(basename "$FILE")
-                            ALREADY_RUN=$(psql $PSQL_ARGS -A -c "SELECT 1 FROM schema_migrations WHERE filename='$FILENAME' AND status='completed';")
-                            if [ "$ALREADY_RUN" == "1" ]; then continue; fi
+      # Securely transfer the asset over without compiling anything on your target environment
+      - name: Copy WAR over to Server Target Staging Path
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ vars.PROD_HOST }}
+          port: ${{ secrets.SSH_PRIVATE_PORT }}
+          username: ${{ secrets.SSH_PRIVATE_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "${{ vars.PROD_APP_NAME }}.war"
+          target: "${{ vars.PROD_APP_PATH }}/target/"
 
-                            echo "Executing migration: $FILENAME"
-                            
-                             # 1. Mark as pending before execution
-                            psql $PSQL_ARGS -c "INSERT INTO schema_migrations (filename, status) VALUES ('$FILENAME', 'pending') ON CONFLICT (filename) DO UPDATE SET status='pending', started_at=NOW(), ended_at=NULL;"
+      - name: Execute Zero-Downtime Deployment & DB Migration
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASS: ${{ secrets.DB_PASS }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          TAG_NAME: ${{ env.TAG_NAME }}
+        with:
+          host: ${{ vars.PROD_HOST }}
+          port: ${{ secrets.SSH_PRIVATE_PORT }}
+          username: ${{ secrets.SSH_PRIVATE_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: DB_NAME,DB_USER,DB_PASS,DB_HOST,TAG_NAME
+          script: |
+            CURRENT_STEP="INITIALIZATION"
+            echo "[Step 1/6] --- Starting Safe Deployment Flow for $TAG_NAME ---"
+            
+            GIT_BIN="/usr/bin/git"
+            FIND_BIN="/usr/bin/find"
+            
+            cd ${{ vars.PROD_APP_PATH }}
+            export PGPASSWORD="$DB_PASS"
+            
+            PSQL_ARGS="-h $DB_HOST -U $DB_USER -d $DB_NAME -t --set ON_ERROR_STOP=1"
+            DUMP_ARGS="-h $DB_HOST -U $DB_USER -d $DB_NAME --no-subscriptions --no-publications -x -O"
+            
+            RUN_DB_STEPS="false"
 
-                            # 2. Execute the migration file directly and safely via the -f flag
-                            psql $PSQL_ARGS -f "$FILE"
+            cleanup_on_failure() {
+              EXIT_CODE=$?
+              if [ $EXIT_CODE -ne 0 ]; then
+                echo "!!! ERROR DETECTED in Step: $CURRENT_STEP (Exit Code: $EXIT_CODE) !!!"
+                if [ "$RUN_DB_STEPS" == "true" ] && { [ "$CURRENT_STEP" == "DATABASE_MIGRATION" ] || [ "$CURRENT_STEP" == "DATABASE_BACKUP" ]; }; then
+                  echo "Cleaning up staging shadow schema due to failure..."
+                  psql $PSQL_ARGS -c "DROP SCHEMA IF EXISTS public_shadow CASCADE;"
+                fi
+                $GIT_BIN checkout .
+                exit $EXIT_CODE
+              fi
+            }
+            trap cleanup_on_failure ERR
 
-                            # 3. Mark as completed upon success
-                            psql $PSQL_ARGS -c "UPDATE schema_migrations SET ended_at=NOW(), status='completed' WHERE filename='$FILENAME';"
+            CURRENT_STEP="SOURCE_CHECKOUT"
+            echo "[Step 2/6] Fetching code for tag: $TAG_NAME"
+            $GIT_BIN fetch --tags --all
+            $GIT_BIN checkout -B "release-$TAG_NAME" "$TAG_NAME"
 
-                        done
+            CURRENT_STEP="DATABASE_EVALUATION"
+            echo "Checking production migration history..."
+            MIGRATIONS_TABLE_EXISTS=$(psql $PSQL_ARGS -A -c "SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='schema_migrations';")
+            
+            if [ "$MIGRATIONS_TABLE_EXISTS" != "1" ]; then
+              RUN_DB_STEPS="true"
+            else
+              FILES=$($FIND_BIN sql/migrations -regextype posix-extended -regex ".*/[0-9]{8}_[0-9]+.*\.sql" | sort)
+              for FILE in $FILES; do
+                FILENAME=$(basename "$FILE")
+                ALREADY_RUN=$(psql $PSQL_ARGS -A -c "SELECT 1 FROM public.schema_migrations WHERE filename='$FILENAME' AND status='completed';")
+                if [ "$ALREADY_RUN" != "1" ]; then
+                  RUN_DB_STEPS="true"
+                  break
+                fi
+              done
+            fi
 
-                        CURRENT_STEP="BUILD"
-                        # 5. Build
-                        echo "[Step 5/7] Building WAR file"
-                        mvn clean package -DskipTests
+            if [ "$RUN_DB_STEPS" == "true" ]; then
+              CURRENT_STEP="DATABASE_BACKUP"
+              echo "[Step 3/6] Changes detected! Preparing isolated shadow schema..."
+              psql $PSQL_ARGS -c "DROP SCHEMA IF EXISTS public_old CASCADE; DROP SCHEMA IF EXISTS public_shadow CASCADE;"
+              pg_dump $DUMP_ARGS -n public -f /tmp/live_full_snapshot.sql
+              sed -E "/^CREATE SCHEMA/d; s/\bpublic\.([a-zA-Z0-9_]+)/public_shadow.\1/g" /tmp/live_full_snapshot.sql > /tmp/shadow_full_snapshot.sql
+              psql $PSQL_ARGS -c "CREATE SCHEMA public_shadow;"
+              psql $PSQL_ARGS -f /tmp/shadow_full_snapshot.sql
+              psql $PSQL_ARGS -c "ALTER SCHEMA public_shadow OWNER TO $DB_USER;"
+              
+              psql $PSQL_ARGS -c "
+                DO \$\$ DECLARE r RECORD; BEGIN
+                    FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public_shadow') LOOP EXECUTE 'ALTER TABLE public_shadow.' || quote_ident(r.tablename) || ' OWNER TO $DB_USER;'; END LOOP;
+                    FOR r IN (SELECT sequencename FROM pg_sequences WHERE schemaname = 'public_shadow') LOOP EXECUTE 'ALTER SEQUENCE public_shadow.' || quote_ident(r.sequencename) || ' OWNER TO $DB_USER;'; END LOOP;
+                END \$\$;"
+              rm -f /tmp/live_full_snapshot.sql /tmp/shadow_full_snapshot.sql
+            else
+              echo "[Step 3/6] SKIPPED: Database matches production schema history state perfectly. Leaving database alone."
+            fi
 
-                        CURRENT_STEP="DEPLOYMENT"
-                        # 6. Deploy to Tomcat (Parallel Deployment)
-                        echo "[Step 6/7] Deploying versioned WAR..."
-                        VERSION_NAME="${{ vars.PROD_DEPLOY_NAME }}##${TAG_NAME}.war"
-                        BUILD_WAR="${{ vars.PROD_APP_PATH }}/target/${{ vars.PROD_APP_NAME }}.war"
+            if [ "$RUN_DB_STEPS" == "true" ]; then
+              CURRENT_STEP="DATABASE_MIGRATION"
+              echo "[Step 4/6] Running database migrations..."
+              
+              echo "--------------------------------------------------"
+              echo "Found new scripts:"
+              
+              FILES_FOUND="false"
+              FILES=$($FIND_BIN sql/migrations -regextype posix-extended -regex ".*/[0-9]{8}_[0-9]+.*\.sql" | sort)
+              for FILE in $FILES; do
+                FILENAME=$(basename "$FILE")
+                ALREADY_RUN=$(psql $PSQL_ARGS -A -c "SELECT 1 FROM public.schema_migrations WHERE filename='$FILENAME' AND status='completed';")
+                if [ "$ALREADY_RUN" != "1" ]; then
+                  echo "  -> $FILENAME"
+                  FILES_FOUND="true"
+                fi
+              done
+              
+              if [ "$FILES_FOUND" == "false" ]; then
+                echo "  (None - running base structural schema init rules only)"
+              fi
+              echo "--------------------------------------------------"
 
-                        # Copy to webapps. Tomcat keeps the old version running for existing users!
-                        cp "$BUILD_WAR" "${{ vars.PROD_DEPLOY_PATH }}/$VERSION_NAME"
+              echo "Initializing core schema layout definitions..."
+              (echo "SET search_path TO public_shadow;"; cat sql/init_schema.sql) | psql $PSQL_ARGS
 
-                        CURRENT_STEP="FINAL_CLEANUP"
-                        # 7. Final Cleanup
-                        echo "[Step 7/7] Cleaning up environment..."
-                        git checkout .
-                        mvn clean
-                        rm "$BACKUP_FILE"
+              for FILE in $FILES; do
+                FILENAME=$(basename "$FILE")
+                ALREADY_RUN=$(psql $PSQL_ARGS -A -c "SELECT 1 FROM public_shadow.schema_migrations WHERE filename='$FILENAME' AND status='completed';")
+                if [ "$ALREADY_RUN" == "1" ]; then continue; fi
+                
+                echo "[RUNNING] Executing migration script natively: $FILENAME"
+                
+                psql $PSQL_ARGS -c "INSERT INTO public_shadow.schema_migrations (filename, status) VALUES ('$FILENAME', 'pending') ON CONFLICT (filename) DO UPDATE SET status='pending', started_at=NOW(), ended_at=NULL;"
+                (echo "SET search_path TO public_shadow;"; cat "$FILE") | psql $PSQL_ARGS
+                psql $PSQL_ARGS -c "UPDATE public_shadow.schema_migrations SET ended_at=NOW(), status='completed' WHERE filename='$FILENAME';"
+                
+                echo "[SUCCESS] Completed: $FILENAME"
+              done
 
-                        echo "--- Deployment of $TAG_NAME completed successfully! ---"
-                env:
-                    DB_NAME: ${{ secrets.DB_NAME }}
-                    DB_USER: ${{ secrets.DB_USER }}
-                    DB_PASS: ${{ secrets.DB_PASS }}
-                    DB_HOST: ${{ secrets.DB_HOST }}
-                    TAG_NAME: ${{ github.event.inputs.test_tag || github.event.release.tag_name }}
+              psql $PSQL_ARGS -c "
+                GRANT USAGE ON SCHEMA public_shadow TO recipe_app_user; 
+                GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA public_shadow TO recipe_app_user; 
+                GRANT SELECT, USAGE ON ALL SEQUENCES IN SCHEMA public_shadow TO recipe_app_user;
+                BEGIN; ALTER SCHEMA public RENAME TO public_old; ALTER SCHEMA public_shadow RENAME TO public; COMMIT;"
+            else
+              echo "[Step 4/6] SKIPPED: Schema update logic is not required for this revision deployment."
+            fi
+
+            CURRENT_STEP="DEPLOYMENT"
+            echo "[Step 5/6] Deploying pre-compiled versioned WAR file..."
+            VERSION_NAME="${{ vars.PROD_DEPLOY_NAME }}##${TAG_NAME}.war"
+            BUILD_WAR="${{ vars.PROD_APP_PATH }}/target/${{ vars.PROD_APP_NAME }}.war"
+            
+            cp "$BUILD_WAR" "${{ vars.PROD_DEPLOY_PATH }}/$VERSION_NAME"
+            touch "${{ vars.PROD_DEPLOY_PATH }}/$VERSION_NAME"
+
+            CURRENT_STEP="FINAL_CLEANUP"
+            echo "[Step 6/6] Cleaning up environment..."
+            $GIT_BIN checkout .
+            rm -f "$BUILD_WAR"
+            echo "--- Deployment of $TAG_NAME completed successfully! ---"
