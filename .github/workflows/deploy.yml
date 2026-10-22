@@ -30,6 +30,12 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
+      - name: Extract Short Hash and Clean Version
+        id: git-info
+        run: |
+          # Get the 7-character short hash
+          echo "SHORT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
       - name: Set up JDK & Maven Environment
         uses: actions/setup-java@v5
         with:
@@ -38,14 +44,17 @@ jobs:
           cache: 'maven'
 
       - name: Build WAR File Off-Server
-        run: mvn clean package -DskipTests -Dgit.branch="${{ github.event.inputs.test_tag || github.event.release.tag_name }}"
+        # Injects version tags directly into Thymeleaf variables
+        run: |
+          mvn clean package -DskipTests \
+            -Dgit.branch="${{ steps.determine-tag.outputs.TAG_NAME }}" \
+            -Dgit.commit.id.abbrev="${{ steps.git-info.outputs.SHORT_HASH }}"
 
       - name: Upload WAR Artifact to GitHub Cloud
         uses: actions/upload-artifact@v4.4.3
         with:
           name: deployment-war-package
           path: target/${{ vars.PROD_APP_NAME }}.war
-
   # --- JOB 2: REMOTE DEPLOYMENT & SHADOW DB MIGRATIONS ---
   deploy-to-production:
     needs: build-application
@@ -135,7 +144,6 @@ jobs:
                 fi
               done
             fi
-
             if [ "$RUN_DB_STEPS" == "true" ]; then
               CURRENT_STEP="DATABASE_BACKUP"
               echo "[Step 3/6] Changes detected! Preparing isolated shadow schema..."
@@ -197,9 +205,9 @@ jobs:
               done
 
               psql $PSQL_ARGS -c "
-                GRANT USAGE ON SCHEMA public_shadow TO recipe_app_user; 
-                GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA public_shadow TO recipe_app_user; 
-                GRANT SELECT, USAGE ON ALL SEQUENCES IN SCHEMA public_shadow TO recipe_app_user;
+                GRANT USAGE ON SCHEMA public_shadow TO joblog_app_user; 
+                GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA public_shadow TO joblog_app_user; 
+                GRANT SELECT, USAGE ON ALL SEQUENCES IN SCHEMA public_shadow TO joblog_app_user;
                 BEGIN; ALTER SCHEMA public RENAME TO public_old; ALTER SCHEMA public_shadow RENAME TO public; COMMIT;"
             else
               echo "[Step 4/6] SKIPPED: Schema update logic is not required for this revision deployment."
