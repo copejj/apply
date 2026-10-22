@@ -124,6 +124,12 @@
 					</execution>
 				</executions>
 				<configuration>
+					<!-- FORCES PROP FILE GENERATION FOR SPRING BOOT READS: -->
+					<generateGitPropertiesFile>true</generateGitPropertiesFile>
+					<generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+					<failOnNoGitDirectory>false</failOnNoGitDirectory>
+					<injectAllReactorProjects>true</injectAllReactorProjects>
+					<skipPoms>false</skipPoms>
 					<gitDescribe>
 						<tags>true</tags>
 					</gitDescribe>
