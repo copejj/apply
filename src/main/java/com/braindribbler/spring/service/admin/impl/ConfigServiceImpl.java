@@ -7,7 +7,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
-import com.braindribbler.spring.enums.admin.ConfigEnvironment;
+import com.braindribbler.spring.config.EnvironmentConfig;
 import com.braindribbler.spring.models.admin.Config;
 import com.braindribbler.spring.repositories.admin.ConfigRepository;
 import com.braindribbler.spring.service.admin.ConfigService;
@@ -25,15 +25,14 @@ public class ConfigServiceImpl implements ConfigService {
 
     @Override
     public List<Config> getAllConfigs() {
-        return configRepository.findAll(); 
+        return configRepository.findAll();
     }
 
     @Override
     @Cacheable(value = "configCache", key = "#env")
-    public List<Config> getAllActiveConfigs(ConfigEnvironment env) {
+    public List<Config> getAllActiveConfigs(EnvironmentConfig env) {
         return configRepository.findByEnvironmentIn(
-            List.of(ConfigEnvironment.ANY, env)
-        );
+                List.of(EnvironmentConfig.ANY, env));
     }
 
     @Override

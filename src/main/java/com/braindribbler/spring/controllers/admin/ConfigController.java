@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.braindribbler.spring.enums.admin.ConfigEnvironment;
+import com.braindribbler.spring.config.EnvironmentConfig;
 import com.braindribbler.spring.models.admin.Config;
 import com.braindribbler.spring.service.admin.ConfigService;
 
@@ -27,13 +27,13 @@ public class ConfigController {
 
     @GetMapping
     public String listConfigs(Model model) {
-		model.addAttribute("title", "Config Settings: " + environment);
-		model.addAttribute("location", "Admin: Config");
-        model.addAttribute("environments", ConfigEnvironment.values());
+        model.addAttribute("title", "Config Settings: " + environment);
+        model.addAttribute("location", "Admin: Config");
+        model.addAttribute("environments", EnvironmentConfig.values());
 
         model.addAttribute("configs", configService.getAllConfigs());
         model.addAttribute("newConfig", new Config());
-        return "admin/config/list"; 
+        return "admin/config/list";
     }
 
     @PostMapping("/save")
