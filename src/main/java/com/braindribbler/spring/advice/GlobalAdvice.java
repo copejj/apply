@@ -12,7 +12,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
-import com.braindribbler.spring.enums.admin.ConfigEnvironment;
+import com.braindribbler.spring.config.EnvironmentConfig;
 import com.braindribbler.spring.models.admin.Config;
 import com.braindribbler.spring.repositories.admin.ConfigRepository;
 import com.braindribbler.spring.service.admin.LabelService;
@@ -25,7 +25,7 @@ public class GlobalAdvice {
     private String externalUrl;
 
     @Value("${app.config.environment}")
-    private ConfigEnvironment currentEnv;
+    private EnvironmentConfig currentEnv;
 
     private final ConfigRepository configRepository;
     private final LabelService labelService;
@@ -52,7 +52,7 @@ public class GlobalAdvice {
             String displayVersion = "Unknown";
 
             // 1. Separate your environments cleanly at the top level
-            if (currentEnv == ConfigEnvironment.DEV) {
+            if (currentEnv == EnvironmentConfig.DEV) {
                 // --- LOCAL DEV SUITE ROUTING ---
                 if (branch != null && !branch.isEmpty() && !branch.equals(fullHash)) {
                     displayVersion = branch; // Force your branch name (e.g., version-info)
@@ -82,7 +82,7 @@ public class GlobalAdvice {
     @ModelAttribute("appSettings")
     public Map<String, String> addConfigToModel() {
         // 1. Fetch records for BOTH the current env (PROD/DEV) and 'ANY'
-        List<ConfigEnvironment> targetEnvs = List.of(currentEnv, ConfigEnvironment.ANY);
+        List<EnvironmentConfig> targetEnvs = List.of(currentEnv, EnvironmentConfig.ANY);
         List<Config> configs = configRepository.findByEnvironmentIn(targetEnvs);
 
         // 2. Build the map with override logic
@@ -90,7 +90,7 @@ public class GlobalAdvice {
 
         // 1. Defaults (ANY)
         configs.stream()
-                .filter(c -> c.getEnvironment() == ConfigEnvironment.ANY)
+                .filter(c -> c.getEnvironment() == EnvironmentConfig.ANY)
                 .forEach(c -> settings.put(c.getName(), c.getValue()));
 
         // 2. Overrides (Specific Env)
