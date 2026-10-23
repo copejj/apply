@@ -27,7 +27,7 @@ public class LabelServiceImpl implements LabelService {
     @Cacheable("labelsCache")
     public Map<String, String> getAllLabelsAsMap() {
         return labelRepository.findAll().stream()
-            .collect(Collectors.toMap(Label::getKey, Label::getLabel));
+                .collect(Collectors.toMap(label -> label.getKey(), label -> label.getLabel()));
     }
 
     @Override

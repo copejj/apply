@@ -50,10 +50,13 @@ public class GlobalAdvice {
 
             String displayVersion;
 
-            if (branch != null && branch.equals(fullHash)) {
-                displayVersion = (tag != null && !tag.isEmpty()) ? tag : shortHash;
+            // Clean, direct validation chain:
+            if (tag != null && !tag.isEmpty() && !tag.equals(fullHash)) {
+                displayVersion = tag; // Always use the verified tag name if it contains a value
+            } else if (branch != null && !branch.equals(fullHash)) {
+                displayVersion = branch; // Use branch tracking names (e.g. main)
             } else {
-                displayVersion = (branch != null) ? branch : "unknown";
+                displayVersion = shortHash; // Direct fallback to short hash
             }
 
             model.addAttribute("gitBranch", displayVersion);
