@@ -47,16 +47,27 @@ public class GlobalAdvice {
             String branch = gitProperties.getBranch();
             String fullHash = gitProperties.get("commit.id");
             String shortHash = gitProperties.getShortCommitId();
+            String describe = gitProperties.get("commit.id.describe");
 
-            String displayVersion;
+            String displayVersion = "Unknown";
 
-            // Clean, direct validation chain:
-            if (tag != null && !tag.isEmpty() && !tag.equals(fullHash)) {
-                displayVersion = tag; // Always use the verified tag name if it contains a value
-            } else if (branch != null && !branch.equals(fullHash)) {
-                displayVersion = branch; // Use branch tracking names (e.g. main)
+            // 1. Separate your environments cleanly at the top level
+            if (currentEnv == ConfigEnvironment.DEV) {
+                // --- LOCAL DEV SUITE ROUTING ---
+                if (branch != null && !branch.isEmpty() && !branch.equals(fullHash)) {
+                    displayVersion = branch; // Force your branch name (e.g., version-info)
+                } else if (shortHash != null && !shortHash.isEmpty()) {
+                    displayVersion = shortHash; // Fallback to short hash if detached
+                }
             } else {
-                displayVersion = shortHash; // Direct fallback to short hash
+                // --- NON DEV SERVERS ROUTING ---
+                if (tag != null && !tag.isEmpty()) {
+                    displayVersion = tag; // Always prioritize the release tag (e.g., v1.1.86)
+                } else if (describe != null && !describe.isEmpty()) {
+                    displayVersion = describe; // Fall back to the full describe pattern
+                } else {
+                    displayVersion = shortHash; // Ultimate production safety fallback
+                }
             }
 
             model.addAttribute("gitBranch", displayVersion);
@@ -65,6 +76,7 @@ public class GlobalAdvice {
         } else {
             model.addAttribute("showGitInfo", false);
         }
+
     }
 
     @ModelAttribute("appSettings")

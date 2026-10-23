@@ -133,6 +133,7 @@
 					<gitDescribe>
 						<tags>true</tags>
 					</gitDescribe>
+					<useBranchNameFromBuildEnvironment>false</useBranchNameFromBuildEnvironment>
 				</configuration>
 			</plugin>
 		</plugins>
