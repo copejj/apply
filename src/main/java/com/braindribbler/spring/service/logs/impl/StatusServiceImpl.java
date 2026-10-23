@@ -23,8 +23,7 @@ public class StatusServiceImpl implements StatusService {
 
 	@Override
 	public Status getStatusById(Long statusId) {
-		// TODO Auto-generated method stub
 		throw new UnsupportedOperationException("Unimplemented method 'getStatusById'");
 	}
-	
+
 }

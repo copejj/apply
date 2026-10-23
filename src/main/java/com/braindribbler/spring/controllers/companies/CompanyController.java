@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.braindribbler.spring.dto.companies.CompanyDTO;
-import com.braindribbler.spring.forms.common.AddressFormItem;
 import com.braindribbler.spring.forms.companies.CompanyForm;
+import com.braindribbler.spring.models.common.AddressType;
 import com.braindribbler.spring.repositories.common.AddressTypeRepository;
 import com.braindribbler.spring.repositories.common.StateRepository;
 import com.braindribbler.spring.security.UserDetailsImpl;
@@ -26,38 +26,39 @@ import jakarta.validation.Valid;
 @RequestMapping("/companies")
 public class CompanyController {
 
-	private final CompanyService companyService;
-	private final StateRepository stateRepository;
-	private final AddressTypeRepository addressTypeRepository;
+    private final CompanyService companyService;
+    private final StateRepository stateRepository;
+    private final AddressTypeRepository addressTypeRepository;
 
-	public CompanyController(CompanyService companyService, StateRepository stateRepository, AddressTypeRepository addressTypeRepository) {
-		this.companyService = companyService;
-		this.stateRepository = stateRepository;
-		this.addressTypeRepository = addressTypeRepository;
-	}
-	
-	@GetMapping
-	public String getCompaniesByCurrentUser(@AuthenticationPrincipal UserDetailsImpl userDetails, Model model) {
-		if (userDetails == null) {
-			return "redirect:/login";
-		} 
+    public CompanyController(CompanyService companyService, StateRepository stateRepository,
+            AddressTypeRepository addressTypeRepository) {
+        this.companyService = companyService;
+        this.stateRepository = stateRepository;
+        this.addressTypeRepository = addressTypeRepository;
+    }
+
+    @GetMapping
+    public String getCompaniesByCurrentUser(@AuthenticationPrincipal UserDetailsImpl userDetails, Model model) {
+        if (userDetails == null) {
+            return "redirect:/login";
+        }
 
         model.addAttribute("companies", companyService.getAll(userDetails.getUserId()));
 
-		model.addAttribute("location", "Companies");
-		model.addAttribute("title", "Companies List");
+        model.addAttribute("location", "Companies");
+        model.addAttribute("title", "Companies List");
 
-		model.addAttribute("view", "companies/list :: companyTable(companies=${companies})");
+        model.addAttribute("view", "companies/list :: companyTable(companies=${companies})");
         return "companies/list";
     }
 
-	@GetMapping("/create")
+    @GetMapping("/create")
     public String showCreateForm(Model model) {
         CompanyForm form = new CompanyForm();
 
         model.addAttribute("location", "New Company");
         model.addAttribute("title", "Company Information");
-        
+
         populateReferenceData(model); // Helper to keep code clean
         model.addAttribute("company", form);
         return "companies/edit"; // Reuse the same template
@@ -65,11 +66,11 @@ public class CompanyController {
 
     @PostMapping("/save")
     public String saveCompany(@Valid @ModelAttribute("company") CompanyForm companyForm,
-        BindingResult result,
-        @AuthenticationPrincipal UserDetailsImpl userDetails,
-        RedirectAttributes redirectAttributes,
-        Model model) {
-        
+            BindingResult result,
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            RedirectAttributes redirectAttributes,
+            Model model) {
+
         cleanAddressList(companyForm); // Move your address cleanup to a private helper
 
         if (result.hasErrors()) {
@@ -90,54 +91,54 @@ public class CompanyController {
         }
     }
 
-    // Helper to avoid duplicating the dropdown logic
     private void populateReferenceData(Model model) {
         model.addAttribute("allStates", stateRepository.findAll());
-        model.addAttribute("allAddressTypes", addressTypeRepository.findAll(Sort.by(Sort.Direction.ASC, "name")));
+
+        // Declaring the parameter type explicitly inside the lambda definition
+        Sort modernSort = Sort.by(Sort.Direction.ASC, (AddressType type) -> type.getName());
+
+        model.addAttribute("allAddressTypes", addressTypeRepository.findAll(modernSort));
     }
 
     // Helper for cleaning up empty rows
     private void cleanAddressList(CompanyForm form) {
         if (form.getAddresses() != null) {
-            form.getAddresses().removeIf(addr -> 
-                (addr.getStreet() == null || addr.getStreet().isBlank()) &&
-                (addr.getCity() == null || addr.getCity().isBlank())
-            );
+            form.getAddresses().removeIf(addr -> (addr.getStreet() == null || addr.getStreet().isBlank()) &&
+                    (addr.getCity() == null || addr.getCity().isBlank()));
         }
     }
 
-	@GetMapping("/edit/{companyId}")
-	public String showEditForm(@PathVariable Long companyId, Model model) {
-		CompanyDTO dto = companyService.getCompanyDTOById(companyId);
-		// Convert to writable form
-		CompanyForm form = companyService.convertToForm(dto);
-		
-		model.addAttribute("location", "Edit Company");
-		model.addAttribute("title", "Company Information");	
-		
-		model.addAttribute("allStates", stateRepository.findAll());
-		model.addAttribute("allAddressTypes", addressTypeRepository.findAll(Sort.by(Sort.Direction.ASC, "name")));
+    @GetMapping("/edit/{companyId}")
+    public String showEditForm(@PathVariable Long companyId, Model model) {
+        CompanyDTO dto = companyService.getCompanyDTOById(companyId);
+        // Convert to writable form
+        CompanyForm form = companyService.convertToForm(dto);
 
-		model.addAttribute("company", form); // 'company' matches th:object in your HTML
-		return "companies/edit";
-	}
+        model.addAttribute("location", "Edit Company");
+        model.addAttribute("title", "Company Information");
 
-	@PostMapping("/update")
-	public String updateCompany(@Valid @ModelAttribute("company") CompanyForm companyForm,
-								BindingResult result, 
-								Model model) {
-		companyForm.getAddresses().removeIf(addr -> 
-			(addr.getStreet() == null || addr.getStreet().isBlank()) &&
-			(addr.getCity() == null || addr.getCity().isBlank())
-		);
+        model.addAttribute("allStates", stateRepository.findAll());
 
-		if (result.hasErrors()) {
-			model.addAttribute("location", "Edit Company");
-			model.addAttribute("title", "Fix Errors");
-            return "companies/edit"; 
+        Sort modernSort = Sort.by(Sort.Direction.ASC, (AddressType type) -> type.getName());
+        model.addAttribute("allAddressTypes", addressTypeRepository.findAll(modernSort));
+        model.addAttribute("company", form); // 'company' matches th:object in your HTML
+        return "companies/edit";
+    }
+
+    @PostMapping("/update")
+    public String updateCompany(@Valid @ModelAttribute("company") CompanyForm companyForm,
+            BindingResult result,
+            Model model) {
+        companyForm.getAddresses().removeIf(addr -> (addr.getStreet() == null || addr.getStreet().isBlank()) &&
+                (addr.getCity() == null || addr.getCity().isBlank()));
+
+        if (result.hasErrors()) {
+            model.addAttribute("location", "Edit Company");
+            model.addAttribute("title", "Fix Errors");
+            return "companies/edit";
         }
 
-		companyService.updateCompany(companyForm);
+        companyService.updateCompany(companyForm);
         return "redirect:/companies/edit/" + companyForm.getCompanyId();
     }
 }

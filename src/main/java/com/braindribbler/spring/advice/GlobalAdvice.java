@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.info.GitProperties;
 import org.springframework.core.Ordered;
@@ -22,22 +21,62 @@ import com.braindribbler.spring.service.admin.LabelService;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class GlobalAdvice {
 
-	@Autowired(required = false)
-    private GitProperties gitProperties;
-
     @Value("${app.api.base-url}")
     private String externalUrl;
-
-    private final ConfigRepository configRepository;
-    private final LabelService labelService;
 
     @Value("${app.config.environment}")
     private ConfigEnvironment currentEnv;
 
-    public GlobalAdvice(ConfigRepository configRepository, LabelService labelService)
-    {
+    private final ConfigRepository configRepository;
+    private final LabelService labelService;
+    private GitProperties gitProperties;
+
+    public GlobalAdvice(GitProperties gitProperties, ConfigRepository configRepository, LabelService labelService) {
         this.configRepository = configRepository;
         this.labelService = labelService;
+        this.gitProperties = gitProperties;
+    }
+
+    @ModelAttribute
+    public void addSiteInfo(Model model) {
+        model.addAttribute("siteName", "The Brain Dribbler");
+        model.addAttribute("externalUrl", externalUrl);
+
+        if (gitProperties != null) {
+            String tag = gitProperties.get("closest.tag.name");
+            String branch = gitProperties.getBranch();
+            String fullHash = gitProperties.get("commit.id");
+            String shortHash = gitProperties.getShortCommitId();
+            String describe = gitProperties.get("commit.id.describe");
+
+            String displayVersion = "Unknown";
+
+            // 1. Separate your environments cleanly at the top level
+            if (currentEnv == ConfigEnvironment.DEV) {
+                // --- LOCAL DEV SUITE ROUTING ---
+                if (branch != null && !branch.isEmpty() && !branch.equals(fullHash)) {
+                    displayVersion = branch; // Force your branch name (e.g., version-info)
+                } else if (shortHash != null && !shortHash.isEmpty()) {
+                    displayVersion = shortHash; // Fallback to short hash if detached
+                }
+            } else {
+                // --- NON DEV SERVERS ROUTING ---
+                if (tag != null && !tag.isEmpty()) {
+                    displayVersion = tag; // Always prioritize the release tag (e.g., v1.1.86)
+                } else if (describe != null && !describe.isEmpty()) {
+                    displayVersion = describe; // Fall back to the full describe pattern
+                } else {
+                    displayVersion = shortHash; // Ultimate production safety fallback
+                }
+            }
+
+            model.addAttribute("gitBranch", displayVersion);
+            model.addAttribute("gitHash", shortHash);
+            model.addAttribute("showGitInfo", true);
+        } else {
+            model.addAttribute("showGitInfo", false);
+        }
+
     }
 
     @ModelAttribute("appSettings")
@@ -51,13 +90,13 @@ public class GlobalAdvice {
 
         // 1. Defaults (ANY)
         configs.stream()
-            .filter(c -> c.getEnvironment() == ConfigEnvironment.ANY)
-            .forEach(c -> settings.put(c.getName(), c.getValue()));
+                .filter(c -> c.getEnvironment() == ConfigEnvironment.ANY)
+                .forEach(c -> settings.put(c.getName(), c.getValue()));
 
         // 2. Overrides (Specific Env)
         configs.stream()
-            .filter(c -> c.getEnvironment() == currentEnv)
-            .forEach(c -> settings.put(c.getName(), c.getValue()));
+                .filter(c -> c.getEnvironment() == currentEnv)
+                .forEach(c -> settings.put(c.getName(), c.getValue()));
 
         return settings;
     }
@@ -67,33 +106,4 @@ public class GlobalAdvice {
         return labelService.getAllLabelsAsMap();
     }
 
-    @ModelAttribute
-    public void addSiteInfo(Model model) {
-        model.addAttribute("siteName", "The Brain Dribbler");
-
-        if (gitProperties != null) {
-            String tag = gitProperties.get("closest.tag.name");
-            String branch = gitProperties.getBranch();
-            String fullHash = gitProperties.get("commit.id");
-            String shortHash = gitProperties.getShortCommitId();
-
-            String displayVersion;
-
-            // 1. If we are in 'Detached HEAD' (common in Prod), branch will be the full hash
-            if (branch != null && branch.equals(fullHash)) {
-                // Use tag if available, otherwise use short hash
-                displayVersion = (tag != null && !tag.isEmpty()) ? tag : shortHash;
-            } else {
-                // 2. We are on a real branch (Local Dev)
-                displayVersion = (branch != null) ? branch : "unknown";
-            }
-
-            model.addAttribute("externalUrl", externalUrl);
-            model.addAttribute("gitBranch", displayVersion);
-            model.addAttribute("gitHash", shortHash);
-            model.addAttribute("showGitInfo", true);
-        } else {
-            model.addAttribute("showGitInfo", false);
-        }
-    }
 }

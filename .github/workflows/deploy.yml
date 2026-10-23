@@ -44,11 +44,12 @@ jobs:
           cache: 'maven'
 
       - name: Build WAR File Off-Server
-        # Injects version tags directly into Thymeleaf variables
         run: |
           mvn clean package -DskipTests \
             -Dgit.branch="${{ steps.determine-tag.outputs.TAG_NAME }}" \
-            -Dgit.commit.id.abbrev="${{ steps.git-info.outputs.SHORT_HASH }}"
+            -Dgit.commit.id.abbrev="${{ steps.git-info.outputs.SHORT_HASH }}" \
+            -Dgit.closest.tag.name="${{ steps.determine-tag.outputs.TAG_NAME }}" \
+            -Dgit.commit.id.describe="${{ steps.determine-tag.outputs.TAG_NAME }}"
 
       - name: Upload WAR Artifact to GitHub Cloud
         uses: actions/upload-artifact@v4.4.3
