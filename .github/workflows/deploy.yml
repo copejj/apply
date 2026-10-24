@@ -56,6 +56,7 @@ jobs:
         with:
           name: deployment-war-package
           path: target/${{ vars.PROD_APP_NAME }}.war
+          archive: false
   # --- JOB 2: REMOTE DEPLOYMENT & SHADOW DB MIGRATIONS ---
   deploy-to-production:
     needs: build-application
