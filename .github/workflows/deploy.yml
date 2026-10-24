@@ -78,8 +78,8 @@ jobs:
           port: ${{ secrets.SSH_PRIVATE_PORT }}
           username: ${{ secrets.SSH_PRIVATE_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "${{ vars.PROD_APP_NAME }}.war" # <-- FIXED: Looks exactly in the root workspace where download-artifact left it
-          target: "${{ vars.PROD_APP_PATH }}/target/" # <-- Keeps your target destination exactly the same
+          source: "${{ vars.PROD_APP_NAME }}.war"
+          target: "${{ vars.PROD_APP_PATH }}/target/"
 
       - name: Execute Zero-Downtime Deployment & DB Migration
         uses: appleboy/ssh-action@v1.2.0
@@ -217,7 +217,7 @@ jobs:
               echo "[Step 4/6] SKIPPED: Schema update logic is not required for this revision deployment."
             fi
 
-            CURRENT_STEP="DEPLOYMENT"
+            CURRENT_STEP="TOMCAT DEPLOYMENT"
             echo "[Step 5/6] Deploying pre-compiled versioned WAR file..."
             VERSION_NAME="${{ vars.PROD_DEPLOY_NAME }}##${TAG_NAME}.war"
             BUILD_WAR="${{ vars.PROD_APP_PATH }}/target/${{ vars.PROD_APP_NAME }}.war"
