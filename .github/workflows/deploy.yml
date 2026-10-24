@@ -78,8 +78,8 @@ jobs:
           port: ${{ secrets.SSH_PRIVATE_PORT }}
           username: ${{ secrets.SSH_PRIVATE_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "${{ vars.PROD_APP_NAME }}.war" # <-- FIXED: Looks exactly in the root workspace where download-artifact left it
-          target: "${{ vars.PROD_APP_PATH }}/target/" # <-- Keeps your target destination exactly the same
+          source: "${{ vars.PROD_APP_NAME }}.war"
+          target: "${{ vars.PROD_APP_PATH }}/target/"
 
       - name: Execute Zero-Downtime Deployment & DB Migration
         uses: appleboy/ssh-action@v1.2.0
