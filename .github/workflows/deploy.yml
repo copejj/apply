@@ -55,7 +55,8 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: deployment-war-package
-          path: target/${{ vars.PROD_APP_NAME }}.war
+          path: target/*.war 
+
   # --- JOB 2: REMOTE DEPLOYMENT & SHADOW DB MIGRATIONS ---
   deploy-to-production:
     needs: build-application
@@ -79,7 +80,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "**/${{ vars.PROD_APP_NAME }}.war" # <-- FIXED: "**/" matches the file whether it's in the root or a 'target/' subfolder
           target: "${{ vars.PROD_APP_PATH }}/target/"
-          strip_components: 1 # <-- Removes the downloaded folder nesting during transmission
+          strip_components: 1 
 
       - name: Execute Zero-Downtime Deployment & DB Migration
         uses: appleboy/ssh-action@v1.2.0
