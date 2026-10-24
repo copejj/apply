@@ -29,7 +29,7 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
-		<my.warName>spring-job-log</my.warName>
+		<my.warName>spring-apply</my.warName>
 	</properties>
 	<dependencies>
 		<dependency>
