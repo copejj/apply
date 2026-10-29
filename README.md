@@ -30,7 +30,7 @@ Serves as a live deployment ground for low-level server operations, including co
 
 ## About the Project Ecosystem
 
-This repository represents the application tracking node (`://braindribbler.com`). If you are interested in exploring other engineering experiments, software utility portals, or technical server specifications within this network, please refer directly to the central hub website:
+This repository represents the application tracking node (`https://apply.braindribbler.com`). If you are interested in exploring other engineering experiments, software utility portals, or technical server specifications within this network, please refer directly to the central hub website:
 
 * Central Gateway: [https://braindribbler.com](https://braindribbler.com)
 
