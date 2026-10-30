@@ -1,8 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" 
-	xmlns:layout="http://www.ultraq.net.nz"
-	xmlns:sec="http://www.thymeleaf.org"
-	layout:decorate="~{layout/default}">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz" xmlns:sec="http://www.thymeleaf.org" layout:decorate="~{layout/default}" th:with="isNarrow=true">
 <body>
     <main layout:fragment="content">
 		<div th:replace="~{fragments/forms :: open-button(targetId='addLabelsForm', text='Add New Labels')}"></div>

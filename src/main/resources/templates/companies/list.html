@@ -1,76 +1,70 @@
 <!DOCTYPE html>
-<html xmlns:th="http://thymeleaf.org" xmlns:layout="http://ultraq.net.nz" layout:decorate="~{layout/default}">
+<html xmlns:th="http://thymeleaf.org" xmlns:layout="http://ultraq.net.nz" layout:decorate="~{layout/default}" th:with="isNarrow=true">
 <body>
-<div layout:fragment="content" class="container-fluid py-4">
-    <div class="row">
-        <div class="col-12 col-md-8 col-lg-6">
-            
-            <div class="mb-3" th:replace="~{fragments/forms :: direct-button(url='/companies/create', text='Add New Company')}"></div>
-            
-            <table id="companyTable" class="datatables table table-striped table-hover" style="display:none; width:100%;">
-                <thead>
-                    <tr>
-                        <th class="text-start" th:text="${labelSettings['company_name']}">Name</th>
-                        <th class="text-start" th:text="${labelSettings['website']}">Website</th>
-                        <th class="text-start" th:text="${labelSettings['apps_count']}"># app.</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="company : ${companies}">
-                        <td class="text-start">
-                            <div class="d-flex align-items-center gap-2">
-                                <a th:href="@{/companies/edit/{id}(id=${company.companyId})}" class="text-secondary p-0" title="Edit this company">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                </a>
-                                <a th:href="@{/logs/list(companyId=${company.companyId})}" class="text-secondary p-0" title="Filter by this company">
-                                    <i class="fa-solid fa-filter"></i>
-                                </a>
-                                <span th:text="${company.companyName}"></span>
-                            </div>
-                        </td>
-                        <td class="text-start" th:data-order="${company.companyWebsite}">
-                            <a th:href="${company.companyWebsite}" th:text="${company.companyUrl}" target="_blank"></a>
-                        </td>
-                        <td class="text-start" th:data-order="${company.logCount}">
-                            <div th:if="${company.logCount > 0}" class="d-flex align-items-center gap-2">
-                                <span class="fw-bold" th:text="${company.logCount}">0</span>
-                                <span class="text-muted small" th:text="${labelSettings['apps']}">apps</span>
-                            </div>
-                            <div th:unless="${company.logCount > 0}" class="d-flex align-items-center gap-2 text-muted">
-                                <span>0</span>
-                                <span class="small" th:text="${labelSettings['apps']}">apps</span>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <div layout:fragment="content">
+        <div th:replace="~{fragments/forms :: direct-button(url='/companies/create', text='Add New Company')}"></div>
+        <table id="companyTable" class="datatables table table-striped table-hover" style="display:none; width:100%;">
+            <thead>
+                <tr>
+                    <th class="text-start" th:text="${labelSettings['company_name']}">Name</th>
+                    <th class="text-start" th:text="${labelSettings['website']}">Website</th>
+                    <th class="text-start" th:text="${labelSettings['apps_count']}"># Apps</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="company : ${companies}">
+                    <td class="text-start">
+                        <div class="d-flex align-items-center gap-2">
+                            <a th:href="@{/companies/edit/{id}(id=${company.companyId})}" class="text-secondary p-0" title="Edit this company">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </a>
+                            <a th:href="@{/logs/list(companyId=${company.companyId})}" class="text-secondary p-0" title="Filter by this company">
+                                <i class="fa-solid fa-filter"></i>
+                            </a>
+                            <span th:text="${company.companyName}"></span>
+                        </div>
+                    </td>
+                    <td class="text-start" th:data-order="${company.companyWebsite}">
+                        <a th:href="${company.companyWebsite}" th:text="${company.companyUrl}" target="_blank"></a>
+                    </td>
+                    <td class="text-start" th:data-order="${company.logCount}">
+                        <div th:if="${company.logCount > 0}" class="d-flex align-items-center gap-2">
+                            <span class="fw-bold" th:text="${company.logCount}">0</span>
+                            <span class="text-muted small" th:text="${labelSettings['apps']}">apps</span>
+                        </div>
+                        <div th:unless="${company.logCount > 0}" class="d-flex align-items-center gap-2 text-muted">
+                            <span>0</span>
+                            <span class="small" th:text="${labelSettings['apps']}">apps</span>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
 
-    <script th:inline="javascript">
-        $(document).ready(function () {
-            $('#companyTable').DataTable({
-                "pageLength": 25,
-                "lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ],
-                "paging": true,
-                "lengthChange": true,
-                "searching": true,
-                "ordering": true,
-                "info": true,
-                "autoWidth": false,
-                "order": [ [ 0, 'asc' ] ], 
-                "columnDefs": [
-                    { width: '45%', targets: 0},
-                    { width: '35%', targets: 1},
-                    { type: "num", width: '10%', targets: 2},
-                ],
-                "responsive": true,
-                initComplete: function() {
-                    $(this).show();
-                }
+        <script th:inline="javascript">
+            $(document).ready(function () {
+                $('#companyTable').DataTable({
+                    "pageLength": 25,
+                    "lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ],
+                    "paging": true,
+                    "lengthChange": true,
+                    "searching": true,
+                    "ordering": true,
+                    "info": true,
+                    "autoWidth": false,
+                    "order": [ [ 0, 'asc' ] ], 
+                    "columnDefs": [
+                        { width: '45%', targets: 0},
+                        { width: '35%', targets: 1},
+                        { type: "num", width: '10%', targets: 2},
+                    ],
+                    "responsive": true,
+                    initComplete: function() {
+                        $(this).show();
+                    }
+                });
             });
-        });
-    </script>
-</div>
+        </script>
+    </div>
 </body>
 </html>

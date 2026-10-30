@@ -1,29 +1,45 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" 
-	xmlns:layout="http://www.ultraq.net.nz"
-	layout:decorate="~{layout/default}">
-    <body>
-        <div layout:fragment="content"> 
-            <div class="about-cont">
-                <div class="about-text">
+<html xmlns:th="http://thymeleaf.org" xmlns:layout="http://ultraq.net.nz" layout:decorate="~{layout/default}" th:with="isNarrow=true">
+<body>
+    <main layout:fragment="content">
+        <div class="about-cont">
+            <div class="about-text">
+                <!-- New wrapper to cleanly center and constrain all text elements together -->
+                <div class="about-inner">
                     <p>
-                        This is the <strong>Brain Dribbler</strong> page.  I put this page and a few others together to experiment with
-                        different tech and essentially exercising my brain while sometimes beating my head against a wall.  
+                        <strong>Take control of your job search pipeline.</strong> When you are sending out numerous
+                        applications across different job boards, losing track of your timeline isn't just easy, it
+                        almost
+                        seems inevitable. This site functions as an application tracking registry to catalog company
+                        profiles, contact details, and job descriptions, turning a cluttered search into an organized
+                        history.
                     </p>
                     <p>
-                        This page is a Java page using the Spring-Boot framework on top of some Thymeleaf templates.  You
-                        can find out more in the specs below if interested. I have also put a fair amount of effort into 
-                        a PHP version as well. 
+                        Built out of necessity to eliminate the stress of tracking modern job hunts, the platform
+                        ensures
+                        that weeks or months down the line, you can instantly remind yourself exactly what position you
+                        applied for and when.
                     </p>
-                    <p>
+
+                    <div class="feature-bullets">
+                        <p><strong>Core Platform Capabilities:</strong></p>
                         <ul>
-                            <li> <a href="/about">Java Server Specs</a> </li>
-                            <li> <a th:href="${appSettings.PHP_EXTERNAL_URL}" target="blank">PHP Brain Dribble</a> </li>
+                            <li><strong>Company & Job Logging:</strong> Keep a clear record of company addresses,
+                                websites,
+                                job listing URLs, confirmation numbers, and specific position details.</li>
+                            <li><strong>Dynamic Status & Notes:</strong> Easily monitor where you stand by updating the
+                                active status of any application as it moves through the hiring pipeline, alongside
+                                custom notes for every role.</li>
+                            <li><strong>Audit-Ready Reporting:</strong> Maintain a reliable, chronological history of
+                                your
+                                weekly search activity, making tracking for compliance, personal accountability, or
+                                unemployment insurance less stressful.</li>
                         </ul>
-                    </p>
+                    </div>
                 </div>
-                <div class="about-image"></div>
             </div>
         </div>
-    </body>
+    </main>
+</body>
+
 </html>
