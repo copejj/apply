@@ -1,51 +1,61 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" 
-	xmlns:layout="http://www.ultraq.net.nz"
-	layout:decorate="~{layout/default}">
-	<body>
-		<main layout:fragment="content"> 
-			<table id="userTable" class="datatables table table-striped table-hover stripe" style="width:100%;display:none;">
-				<thead>
-					<tr>
-						<th th:text="${labelSettings['start_date']}">started date</th>
-						<th th:text="${labelSettings['end_date']}">ended date</th>
-						<th th:text="${labelSettings['file_name']}">file name</th>
-						<th th:text="${labelSettings['status']}">status</th>
-						<th th:text="${labelSettings['error_message']}">error message</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr th:each="migration : ${migrations}">
-						<td th:text="${#temporals.format(migration.startedAt, 'yyyy-MM-dd HH:mm:ss')}"></td>
-						<td th:text="${#temporals.format(migration.endedAt, 'yyyy-MM-dd HH:mm:ss')}"></td>
-						<td th:text="${migration.filename}"></td>
-						<td th:text="${migration.status}"></td>
-						<td th:text="${migration.errorMessage}"></td>
-					</tr>
-				</tbody>
-			</table>
-			<script>
-				$(document).ready(function () {
-					$('#userTable').DataTable({
-						"pageLength": -1,
-						"lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ],
-						"paging": true,
-						"lengthChange": true,
-						"searching": true,
-						"ordering": true,
-						"info": true,
-						"autoWidth": false,
-						"order": { "idx": 0, "dir": 'asc' }, 
-						"columnDefs": [
-							{ width: '200px', targets: [0, 1] }
-						],
-						"responsive": true,
-                        initComplete: function() {
-                            $(this).addClass('d-some');
-                        }
-					});
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz" layout:decorate="~{layout/default}">
+
+<body>
+	<!-- Added structural grid classes directly onto the container element hook -->
+	<main layout:fragment="content" class="container-fluid py-3">
+		<div class="row justify-content-center">
+			<div class="col-12 style-container-override">
+
+				<table id="userTable" class="datatables table table-striped table-hover stripe"
+					style="width:100%;display:none;">
+					<thead>
+						<tr>
+							<th th:text="${labelSettings['start_date']}">started date</th>
+							<th th:text="${labelSettings['end_date']}">ended date</th>
+							<th th:text="${labelSettings['file_name']}">file name</th>
+							<th th:text="${labelSettings['status']}">status</th>
+							<th th:text="${labelSettings['error_message']}">error message</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr th:each="migration : ${migrations}">
+							<td th:text="${#temporals.format(migration.startedAt, 'yyyy-MM-dd HH:mm:ss')}"></td>
+							<td th:text="${#temporals.format(migration.endedAt, 'yyyy-MM-dd HH:mm:ss')}"></td>
+							<td th:text="${migration.filename}"></td>
+							<td th:text="${migration.status}"></td>
+							<td th:text="${migration.errorMessage}"></td>
+						</tr>
+					</tbody>
+				</table>
+
+			</div>
+		</div>
+
+		<!-- Explicitly included th:inline="none" to prevent Thymeleaf from parsing the JS array brackets -->
+		<script th:inline="none">
+			$(document).ready(function () {
+				$('#userTable').DataTable({
+					"pageLength": -1,
+					"lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+					"paging": true,
+					"lengthChange": true,
+					"searching": true,
+					"ordering": true,
+					"info": true,
+					"autoWidth": false,
+					"order": [[0, 'asc']],
+					"columnDefs": [
+						{ width: '200px', targets: [0, 1] }
+					],
+					"responsive": true,
+					initComplete: function () {
+						$(this).show();
+					}
 				});
-			</script>
-		</main>
-	</body>
+			});
+		</script>
+	</main>
+</body>
+
 </html>
