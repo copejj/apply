@@ -30,12 +30,11 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/error", "/login", "/about", "/join/**", "/css/**", "/js/**",
+                        .requestMatchers("/", "/error", "/login", "/join/**", "/css/**", "/js/**",
                                 "/images/**", "/favicon.ico")
                         .permitAll()
 
                         .requestMatchers("/actuator/health").access(hasIpAddresses("127.0.0.1", "::1"))
-                        // 2. Ensure the "error" and "logout" parameters aren't blocked
                         .requestMatchers("/login?error", "/login?logout").permitAll()
                         .anyRequest().authenticated())
                 .formLogin(form -> form

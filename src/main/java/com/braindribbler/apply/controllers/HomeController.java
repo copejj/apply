@@ -13,11 +13,4 @@ public class HomeController {
 		model.addAttribute("title", "Welcome to your Job Search Hub!");
 		return "index";
 	}
-
-	@GetMapping("/about")
-	public String about(Model model) {
-		model.addAttribute("location", "About");
-		model.addAttribute("title", "About Brain Dribbler");
-		return "about";
-	}
 }
