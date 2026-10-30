@@ -92,8 +92,6 @@ div#pageContent .sub-header-cont {
     display: flex;
     justify-content: flex-start;
     max-width: 55rem;
-    margin-left: auto;
-    margin-right: auto;
 }
 
 div#pageContent .sub-header-cont {
@@ -359,9 +357,9 @@ div.table table.dataTable {
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* Centers the whole component chain on screen */
-    width: 100%;
     box-sizing: border-box;
+    max-width: 80%;
+    margin: auto;
 }
 
 /* Centers standalone template rows if elements are wrapped in bootstrap grid tags */
@@ -545,11 +543,6 @@ span.clear-button:hover a,
 span.clear-button:hover {
     color: white;
     background-color: #496b89;
-}
-
-main.container-fluid.py-3 {
-    width: 80%;
-    margin: auto;
 }
 
 /* ==========================================================================
