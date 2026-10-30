@@ -3,6 +3,7 @@ package com.braindribbler.apply.models.users;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -56,6 +57,19 @@ public class User {
 	@Column(name = "is_admin")
 	private boolean isAdmin;
 
+	// Mailgun verification and password tracking additions
+	@Column(name = "is_verified", nullable = false)
+	private boolean isVerified = false;
+
+	@Column(name = "verification_token")
+	private UUID verificationToken;
+
+	@Column(name = "reset_password_token")
+	private UUID resetPasswordToken;
+
+	@Column(name = "reset_password_expires_at")
+	private LocalDateTime resetPasswordExpiresAt;
+
 	@OneToMany(mappedBy = "userId", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	@JsonManagedReference
 	private List<Company> companies = new ArrayList<>();
@@ -77,7 +91,7 @@ public class User {
 		return roles.toString();
 	}
 
-	/* Getters and Setters */
+	/* Existing and New Getters and Setters */
 	public Long getUserId() {
 		return userId;
 	}
@@ -156,6 +170,38 @@ public class User {
 
 	public void setAdmin(boolean isAdmin) {
 		this.isAdmin = isAdmin;
+	}
+
+	public boolean isVerified() {
+		return isVerified;
+	}
+
+	public void setVerified(boolean verified) {
+		isVerified = verified;
+	}
+
+	public UUID getVerificationToken() {
+		return verificationToken;
+	}
+
+	public void setVerificationToken(UUID verificationToken) {
+		this.verificationToken = verificationToken;
+	}
+
+	public UUID getResetPasswordToken() {
+		return resetPasswordToken;
+	}
+
+	public void setResetPasswordToken(UUID resetPasswordToken) {
+		this.resetPasswordToken = resetPasswordToken;
+	}
+
+	public LocalDateTime getResetPasswordExpiresAt() {
+		return resetPasswordExpiresAt;
+	}
+
+	public void setResetPasswordExpiresAt(LocalDateTime resetPasswordExpiresAt) {
+		this.resetPasswordExpiresAt = resetPasswordExpiresAt;
 	}
 
 	public List<Company> getCompanies() {

@@ -39,7 +39,7 @@ public class GlobalAdvice {
 
     @ModelAttribute
     public void addSiteInfo(Model model) {
-        model.addAttribute("siteName", "The Brain Dribbler");
+        model.addAttribute("siteName", "Brain Dribbler Apply");
         model.addAttribute("externalUrl", externalUrl);
 
         if (gitProperties != null) {

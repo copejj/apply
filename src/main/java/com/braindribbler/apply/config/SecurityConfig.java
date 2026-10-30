@@ -21,43 +21,44 @@ import org.springframework.security.web.util.matcher.IpAddressMatcher;
 @EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfig {
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8();
-    }
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+                return Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8();
+        }
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/error", "/login", "/about", "/join/**", "/css/**", "/js/**",
-                                "/images/**", "/favicon.ico")
-                        .permitAll()
+        @Bean
+        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                http
+                                .authorizeHttpRequests(auth -> auth
+                                                .requestMatchers("/", "/error", "/login", "/about", "/join/**",
+                                                                "/auth/**", "/css/**", "/js/**",
+                                                                "/images/**", "/favicon.ico")
+                                                .permitAll()
 
-                        .requestMatchers("/actuator/health").access(hasIpAddresses("127.0.0.1", "::1"))
-                        // 2. Ensure the "error" and "logout" parameters aren't blocked
-                        .requestMatchers("/login?error", "/login?logout").permitAll()
-                        .anyRequest().authenticated())
-                .formLogin(form -> form
-                        .loginPage("/login") // Your custom login page URL
-                        .loginProcessingUrl("/login") // URL to submit the username and password
-                        .defaultSuccessUrl("/", true) // Redirect after login
-                        .permitAll())
-                .logout(logout -> logout
-                        .logoutSuccessUrl("/login?logout")
-                        .permitAll());
+                                                .requestMatchers("/actuator/health")
+                                                .access(hasIpAddresses("127.0.0.1", "::1"))
+                                                .requestMatchers("/login?error", "/login?logout").permitAll()
+                                                .anyRequest().authenticated())
+                                .formLogin(form -> form
+                                                .loginPage("/login")
+                                                .loginProcessingUrl("/login")
+                                                .defaultSuccessUrl("/", true)
+                                                .permitAll())
+                                .logout(logout -> logout
+                                                .logoutSuccessUrl("/login?logout")
+                                                .permitAll());
 
-        return http.build();
-    }
+                return http.build();
+        }
 
-    private static AuthorizationManager<RequestAuthorizationContext> hasIpAddresses(String... ipAddresses) {
-        List<IpAddressMatcher> matchers = Arrays.stream(ipAddresses)
-                .map(IpAddressMatcher::new)
-                .toList();
-        return (authentication, context) -> {
-            boolean matches = matchers.stream()
-                    .anyMatch(matcher -> matcher.matches(context.getRequest()));
-            return new AuthorizationDecision(matches);
-        };
-    }
+        private static AuthorizationManager<RequestAuthorizationContext> hasIpAddresses(String... ipAddresses) {
+                List<IpAddressMatcher> matchers = Arrays.stream(ipAddresses)
+                                .map(IpAddressMatcher::new)
+                                .toList();
+                return (authentication, context) -> {
+                        boolean matches = matchers.stream()
+                                        .anyMatch(matcher -> matcher.matches(context.getRequest()));
+                        return new AuthorizationDecision(matches);
+                };
+        }
 }

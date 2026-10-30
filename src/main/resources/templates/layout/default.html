@@ -1,23 +1,36 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-	xmlns:layout="http://www.ultraq.net.nz">
-	<head th:replace="~{fragments/head :: head-fragment}">
-	</head>
-	<body>
-		<div class="full-page-content">
-			<div th:replace="~{fragments/header :: header-fragment}"></div>
-			<nav th:replace="~{fragments/navbar :: nav-fragment}"></nav>
-				<div class="content-cont table">
-					<div class="container-fluid py-3">
-						<dv class="mb-2">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://ultraq.net.nz">
+
+<head th:replace="~{fragments/head :: head-fragment}">
+</head>
+
+<body>
+	<div class="full-page-content">
+		<div th:replace="~{fragments/header :: header-fragment}"></div>
+		<nav th:replace="~{fragments/navbar :: nav-fragment}"></nav>
+		<div class="content-cont table">
+			<div class="container-fluid py-3">
+				<!-- Content Centering Wrapper Start -->
+				<div class="row justify-content-center">
+					<div class="col-12 col-xl-10 style-container-override">
+
+						<div class="mb-2">
 							<nav th:replace="~{fragments/header :: title-fragment}"></nav>
-						</dv>
+						</div>
+
 						<div th:replace="~{fragments/message :: message-fragment}"></div>
+
+						<!-- Target Content Injection Hook -->
 						<main layout:fragment="content"></main>
+
 					</div>
 				</div>
-				<footer th:replace="~{fragments/footer :: footer-fragment}"></footer>
-			<div th:replace="~{fragments/foot :: foot-fragment}"> </div>
+				<!-- Content Centering Wrapper End -->
+			</div>
 		</div>
-	</body>
+		<footer th:replace="~{fragments/footer :: footer-fragment}"></footer>
+		<div th:replace="~{fragments/foot :: foot-fragment}"> </div>
+	</div>
+</body>
+
 </html>

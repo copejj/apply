@@ -42,10 +42,17 @@ public class MenuAdvice {
                 adminMenu.addChild(new MenuItem("/admin/users", "Users"));
                 list.add(adminMenu);
             }
-            list.add(new MenuItem("/admin/users/edit/" + user.getUserId(), "Profile", "align-right"));
+
+            // --- AUTHENTICATED STATE ---
+            // Profile is the FIRST right-aligned item; it gets the push class
+            list.add(new MenuItem("/admin/users/edit/" + user.getUserId(), "Profile", "align-right menu-push-right"));
+            // Logout follows right after it; it only needs standard item alignment
             list.add(new MenuItem("/logout", "Logout", "align-right"));
         } else {
-            list.add(new MenuItem("/about", "About", "align-right"));
+            // --- GUEST STATE ---
+            // About is the FIRST right-aligned item; it gets the push class
+            list.add(new MenuItem("/about", "About", "align-right menu-push-right"));
+            // Login follows right after it; it only needs standard item alignment
             list.add(new MenuItem("/login", "Login", "align-right"));
         }
 

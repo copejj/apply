@@ -43,10 +43,10 @@ public class UserDetailsImpl implements UserDetails {
 
 	@Override
 	public boolean isEnabled() {
-		return user.getInactiveDate() == null;
+		// User must not have an inactive date AND must be email-verified via Mailgun
+		return user.getInactiveDate() == null && user.isVerified();
 	}
 
-	// Usually return true for these unless you have specific logic
 	@Override
 	public boolean isAccountNonExpired() {
 		return true;
