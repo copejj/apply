@@ -30,6 +30,10 @@ code {
     margin: auto;
 }
 
+.content-narrow {
+    max-width: 60% !important;
+}
+
 /* ==========================================================================
    2. Layout Wrappers
    ========================================================================== */
@@ -342,12 +346,13 @@ li.link.link-selected {
 /* The actual table element layout constraint rules */
 div.table table.dataTable {
     margin: 0 auto !important;
-    /* Forces layout tracking script alignment to center */
-    width: auto !important;
-    /* Allows thin tables with fewer columns to shrink to fit contents */
-    max-width: 100%;
-    /* Ensures massive full-width grids can scale up nicely */
 }
+
+/* Forces all DataTable header text to stay on a single line */
+div.table table.dataTable th {
+    white-space: nowrap !important;
+}
+
 
 /* ==========================================================================
    6. Data Tables & Filters
@@ -417,15 +422,6 @@ div.table table.dataTable {
 .dt-layout-full {
     display: table-cell;
     width: 100%;
-}
-
-/* 3. Sizing constraints that allow tables to auto-shrink natively */
-div.table table.dataTable {
-    margin: 0 auto !important;
-    width: auto !important;
-    /* Collapses narrow grids snugly around their data content */
-    max-width: 100% !important;
-    /* Keeps massive wide grids safely within screen borders */
 }
 
 td.company-cell {

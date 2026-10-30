@@ -1,36 +1,30 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz" layout:decorate="~{layout/default}">
-
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz" layout:decorate="~{layout/default}" th:with="isNarrow=true">
 <body>
 	<!-- Added structural grid classes directly onto the container element hook -->
 	<main layout:fragment="content" class="container-fluid py-3">
-		<div class="row justify-content-center">
-			<div class="col-12 style-container-override">
 
-				<table id="userTable" class="datatables table table-striped table-hover stripe"
-					style="width:100%;display:none;">
-					<thead>
-						<tr>
-							<th th:text="${labelSettings['start_date']}">started date</th>
-							<th th:text="${labelSettings['end_date']}">ended date</th>
-							<th th:text="${labelSettings['file_name']}">file name</th>
-							<th th:text="${labelSettings['status']}">status</th>
-							<th th:text="${labelSettings['error_message']}">error message</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr th:each="migration : ${migrations}">
-							<td th:text="${#temporals.format(migration.startedAt, 'yyyy-MM-dd HH:mm:ss')}"></td>
-							<td th:text="${#temporals.format(migration.endedAt, 'yyyy-MM-dd HH:mm:ss')}"></td>
-							<td th:text="${migration.filename}"></td>
-							<td th:text="${migration.status}"></td>
-							<td th:text="${migration.errorMessage}"></td>
-						</tr>
-					</tbody>
-				</table>
-
-			</div>
-		</div>
+		<table id="userTable" class="datatables table table-striped table-hover stripe"
+			style="width:100%;display:none;">
+			<thead>
+				<tr>
+					<th th:text="${labelSettings['start_date']}">started date</th>
+					<th th:text="${labelSettings['end_date']}">ended date</th>
+					<th th:text="${labelSettings['file_name']}">file name</th>
+					<th th:text="${labelSettings['status']}">status</th>
+					<th th:text="${labelSettings['error_message']}">error message</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="migration : ${migrations}">
+					<td th:text="${#temporals.format(migration.startedAt, 'yyyy-MM-dd HH:mm:ss')}"></td>
+					<td th:text="${#temporals.format(migration.endedAt, 'yyyy-MM-dd HH:mm:ss')}"></td>
+					<td th:text="${migration.filename}"></td>
+					<td th:text="${migration.status}"></td>
+					<td th:text="${migration.errorMessage}"></td>
+				</tr>
+			</tbody>
+		</table>
 
 		<!-- Explicitly included th:inline="none" to prevent Thymeleaf from parsing the JS array brackets -->
 		<script th:inline="none">

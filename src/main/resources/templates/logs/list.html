@@ -1,9 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" 
-	xmlns:layout="http://www.ultraq.net.nz"
-	layout:decorate="~{layout/default}">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz" layout:decorate="~{layout/default}">
 	<body>
-		<h2>/logs/list.html</h2>
         <div layout:fragment="content"> 
             <div th:replace="~{fragments/forms :: direct-button(url='/logs/create', text='Add New Application')}"></div>
             <div class='filter-box' th:if="${selectedWeek != null or selectedCompany != null}">
@@ -27,13 +24,14 @@
                     </a>
                 </span>
             </div>
-            <table id="logsTable" class="datatables table table-striped table-hover stripe" style="display:none;">
+            <table id="logsTable" class="datatables table table-striped table-hover" style="display:none;">
                 <thead>
                     <tr>
-                        <th class="ps-5" th:text="${labelSettings['week_id']}">week</th>
+                        <th th:text="${labelSettings['week_start']}">week start</th>
+                        <th th:text="${labelSettings['week_end']}">week end</th>
                         <th th:text="${labelSettings['action_date']}">action date</th>
-                        <th class="ps-5" th:text="${labelSettings['company_name']}">company name</th>
-                        <th class="ps-5" th:text="${labelSettings['title']}">title</th>
+                        <th th:text="${labelSettings['company_name']}">company name</th>
+                        <th th:text="${labelSettings['title']}">title</th>
                         <th th:text="${labelSettings['current_status']}">current status</th>
                         <th th:text="${labelSettings['job_number']}">job number</th>
                     </tr>
@@ -54,8 +52,9 @@
                                 title="Click to filter on this week or click again to clear">
                                 <i class="fa-solid fa-filter"></i>
                             </a>
-                            <span th:text="${log.startDate} + ' - ' + ${log.endDate}"></span>
+                            <span th:text="${log.startDate}"></span>
                         </td>
+                        <td th:text="${log.endDate}"></td>
                         <td th:text="${log.actionDate}"></td>
                         <td>
                             <a th:href="@{/companies/edit/{id}(id=${log.companyId})}"
@@ -108,11 +107,6 @@
                         "info": true,
                         "autoWidth": false,
                         "order": [{ "idx": 1, "dir": 'desc' }, { "idx": 2, "dir": 'asc' }], 
-                        "columnDefs": [
-                            { width: '15%', targets: [0] }, 
-                            { width: '8%', targets: [1] }, 
-                            { width: '22%', targets: [2] }, 
-                        ],
                         "responsive": true,
                         initComplete: function() {
                             $(this).addClass('d-some');
@@ -181,7 +175,6 @@
                     }
                 });
             </script>
-        </div>
 		</div>
 	</body>
 </html>

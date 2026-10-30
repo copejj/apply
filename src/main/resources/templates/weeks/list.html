@@ -1,58 +1,52 @@
 <!DOCTYPE html>
-<html xmlns:th="http://thymeleaf.org" xmlns:layout="http://ultraq.net.nz" layout:decorate="~{layout/default}">
+<html xmlns:th="http://thymeleaf.org" xmlns:layout="http://ultraq.net.nz" layout:decorate="~{layout/default}" th:with="isNarrow=true">
 <body>
 <div layout:fragment="content" class="container-fluid py-4">
-    <div class="row">
-        <div class="col-12 col-md-8 col-lg-6">
-            
-            <table id="weeksTable" class="datatables table table-striped table-hover" style="display:none; width:100%;">
-                <thead>
-                    <tr>
-                        <th class="text-start ps-5" th:text="${labelSettings['start_date']}">week start</th>
-                        <th class="text-start" th:text="${labelSettings['end_date']}">week end</th>
-                        <th class="text-start" th:text="${labelSettings['apps_count']}"># apps</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="week : ${weeks}">
-                        <td class="text-start">
-                            <div class="d-flex align-items-center gap-2">
-                                <a th:if="${week.logCounts > 0}" th:href="@{/logs/details(weekId=${week.weekId})}" class="text-secondary p-0" title="Go to plain text clipboard staging">
-                                    <i class="fa-solid fa-square-poll-horizontal"></i>
-                                </a>
-                                <span th:unless="${week.logCounts > 0}" class="text-secondary p-0 opacity-50" title="No clipboard data">
-                                    <i class="fa-solid fa-square-poll-horizontal"></i>
-                                </span>
+    <table id="weeksTable" class="datatables table table-striped table-hover" style="display:none; width:100%;">
+        <thead>
+            <tr>
+                <th class="text-start ps-5" th:text="${labelSettings['start_date']}">week start</th>
+                <th class="text-start" th:text="${labelSettings['end_date']}">week end</th>
+                <th class="text-start" th:text="${labelSettings['apps_count']}"># apps</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="week : ${weeks}">
+                <td class="text-start">
+                    <div class="d-flex align-items-center gap-2">
+                        <a th:if="${week.logCounts > 0}" th:href="@{/logs/details(weekId=${week.weekId})}" class="text-secondary p-0" title="Go to plain text clipboard staging">
+                            <i class="fa-solid fa-square-poll-horizontal"></i>
+                        </a>
+                        <span th:unless="${week.logCounts > 0}" class="text-secondary p-0 opacity-50" title="No clipboard data">
+                            <i class="fa-solid fa-square-poll-horizontal"></i>
+                        </span>
 
-                                <a th:if="${week.logCounts > 0}" th:href="@{/logs/list(weekId=${week.weekId})}" class="text-secondary p-0" title="Filter logs by this week">
-                                    <i class="fa-solid fa-filter"></i>
-                                </a>
-                                <span th:unless="${week.logCounts > 0}" class="text-secondary p-0 opacity-50" title="No logs to filter">
-                                    <i class="fa-solid fa-filter"></i>
-                                </span>
+                        <a th:if="${week.logCounts > 0}" th:href="@{/logs/list(weekId=${week.weekId})}" class="text-secondary p-0" title="Filter logs by this week">
+                            <i class="fa-solid fa-filter"></i>
+                        </a>
+                        <span th:unless="${week.logCounts > 0}" class="text-secondary p-0 opacity-50" title="No logs to filter">
+                            <i class="fa-solid fa-filter"></i>
+                        </span>
 
-                                <span th:text="${week.startDate}"></span>
-                            </div>
-                        </td>
-                        
-                        <td class="text-start" th:text="${week.endDate}"></td>
-                        
-                        <td class="text-start" th:data-order="${week.logCounts ?: 0}">
-                            <div th:if="${week.logCounts > 0}" class="d-flex align-items-center gap-2">
-                                <span class="fw-bold" th:text="${week.logCounts}">0</span>
-                                <span class="text-muted small" th:text="${labelSettings['apps']}">apps</span>
-                            </div>
-                            <div th:unless="${week.logCounts > 0}" class="d-flex align-items-center gap-2 text-muted">
-                                <span>0</span>
-                                <span class="small" th:text="${labelSettings['apps']}">apps</span>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-
-        </div>
-    </div>
+                        <span th:text="${week.startDate}"></span>
+                    </div>
+                </td>
+                
+                <td class="text-start" th:text="${week.endDate}"></td>
+                
+                <td class="text-start" th:data-order="${week.logCounts ?: 0}">
+                    <div th:if="${week.logCounts > 0}" class="d-flex align-items-center gap-2">
+                        <span class="fw-bold" th:text="${week.logCounts}">0</span>
+                        <span class="text-muted small" th:text="${labelSettings['apps']}">apps</span>
+                    </div>
+                    <div th:unless="${week.logCounts > 0}" class="d-flex align-items-center gap-2 text-muted">
+                        <span>0</span>
+                        <span class="small" th:text="${labelSettings['apps']}">apps</span>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
 
     <script th:inline="javascript">
         $(document).ready(function () {
