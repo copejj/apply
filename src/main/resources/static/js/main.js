@@ -251,4 +251,23 @@ document.addEventListener('click', (event) => {
 	if (copyInviteBtn) {
 		copyInvite(copyInviteBtn);
 	}
+
+	const addAddressBtn = event.target.closest('[data-add-address]');
+	if (addAddressBtn) {
+		addAddress();
+		return;
+	}
+
+	const removeAddressBtn = event.target.closest('[data-remove-address]');
+	if (removeAddressBtn) {
+		removeAndReindex(removeAddressBtn);
+		return;
+	}
+});
+
+document.addEventListener('input', (event) => {
+	const parseInput = event.target.closest('[data-parse-address]');
+	if (parseInput) {
+		parse_address(parseInput);
+	}
 });

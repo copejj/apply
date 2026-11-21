@@ -26,7 +26,7 @@
                 th:name="|addresses[${index != null ? index : 'INDEX_VAR'}].street|"
                 th:value="${index != null ? company.addresses[index].street : ''}"
                 th:attr="autocomplete=${index != null ? 'section-' + index : 'section-INDEX_VAR'} + ' address-line1'"
-                oninput="parse_address(this)" />
+                data-parse-address="true" />
         </div>
         <div class="col-md-3">
             <label class="form-label" th:text="${labelSettings['suite_apt']}">Suite/Apt</label>
@@ -66,7 +66,7 @@
                   th:attr="autocomplete=${index != null ? 'section-' + index : 'section-INDEX_VAR'} + ' postal-code'" />
         </div>
         <div class="col-md-2 d-flex align-items-end">
-            <button type="button" class="btn btn-outline-danger w-100" onclick="removeAndReindex(this)">
+            <button type="button" class="btn btn-outline-danger w-100" data-remove-address="true">
                 <i class="fa-solid fa-trash me-1"></i> Remove
             </button>
         </div>
