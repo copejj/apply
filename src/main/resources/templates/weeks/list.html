@@ -47,32 +47,7 @@
             </tr>
         </tbody>
     </table>
-
-    <script th:inline="javascript">
-        $(document).ready(function () {
-            $('#weeksTable').DataTable({
-                "pageLength": 10,
-                "lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ],
-                "paging": true,
-                "lengthChange": true,
-                "searching": true,
-                "ordering": true,
-                "info": true,
-                "autoWidth": false,
-                // Default sorts by column 0 (Week Start Date) descending
-                "order": [ [ 0, 'desc' ] ], 
-                "columnDefs": [
-                    { width: '40%', targets: 0 },       // Week Start + Actions
-                    { width: '30%', targets: 1 },       // Week End
-                    { type: "num", width: '10%', targets: 2 }  // # apps
-                ],
-                "responsive": true,
-                initComplete: function() {
-                    $(this).show();
-                }
-            });
-        });
-    </script>
+    <script th:src="@{/js/logs.js}"></script>
 </div>
 </body>
 </html>

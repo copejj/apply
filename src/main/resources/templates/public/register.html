@@ -55,19 +55,7 @@
 					</div>
 				</div>
 			</div>
-
-			<script>
-				// Basic client-side password match validation
-				$('#pw, #pw_confirm').on('keyup', function () {
-					if ($('#pw').val() == $('#pw_confirm').val()) {
-						$('#msg').html('Passwords match').css('color', 'green');
-						$('#submitBtn').prop('disabled', false);
-					} else {
-						$('#msg').html('Passwords do not match').css('color', 'red');
-						$('#submitBtn').prop('disabled', true);
-					}
-				});
-			</script>
+			<script th:src="@{/js/register.js}"></script>
 		</main>
 	</body>
 </html>
