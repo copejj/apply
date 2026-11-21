@@ -20,7 +20,7 @@
 			</div>
 		</div>
 
-		<table id="labelsTable" class="datatables table table-striped table-hover stripe" style="display:none;">
+		<table id="labelsTable" data-admin-table="labels" class="datatables table table-striped table-hover stripe" style="display:none;">
 			<thead>
 				<tr>
 					<th sec:authorize="hasRole('ADMIN')"></th>
@@ -34,7 +34,7 @@
 						<form th:action="@{/admin/labels/delete/{id}(id=${label.labelId})}" method="post" class="d-inline">
 							<button type="button"
 									style="background: none; border: none; padding: 0; cursor: pointer; color: #dc3545;"
-									onclick="submitForm(this, 'Are you sure? This will permanently delete this label.')">
+									data-confirm-submit="Are you sure? This will permanently delete this label.">
 								<i class="fa-solid fa-x"></i>
 							</button>
 						</form>
@@ -45,30 +45,7 @@
 			</tbody>
 		</table>
 
-		<script>
-			$(document).ready(function () {
-				$('#labelsTable').DataTable({
-					"pageLength": 25,
-					"lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ],
-					"paging": true,
-					"lengthChange": true,
-					"searching": true,
-					"ordering": true,
-					"info": true,
-					"autoWidth": false,
-					"responsive": true,
-					"order": [{ "idx": 1, "dir": 'asc' }],  
-					"columnDefs": [
-						{ width: '2%', targets: [0] }, 
-						{ width: '30%', targets: [1,2] }, 
-						{ orderable: false, targets: [0] }
-					],
-					initComplete: function() {
-						$(this).show(); // Show table after DataTables is ready
-					}
-				});
-			});
-		</script>
+		<script th:src="@{/js/admin.js}"></script>
     </main>
 </body>
 </html>
