@@ -25,7 +25,7 @@
 			</div>
 		</div>
 
-		<table id="configTable" class="datatables table table-striped table-hover stripe" style="display:none;">
+		<table id="configTable" data-admin-table="config" class="datatables table table-striped table-hover stripe" style="display:none;">
 			<thead>
 				<tr>
 					<th sec:authorize="hasRole('ADMIN')"></th>
@@ -40,7 +40,7 @@
 						<form th:action="@{/admin/config/delete/{id}(id=${c.configId})}" method="post" class="d-inline">
 							<button type="button"
 									style="background: none; border: none; padding: 0; cursor: pointer; color: #dc3545;"
-									onclick="submitForm(this, 'Are you sure? This will permanently delete this configuration.')">
+									data-confirm-submit="Are you sure? This will permanently delete this configuration.">
 								<i class="fa-solid fa-x"></i>
 							</button>
 						</form>
@@ -52,30 +52,7 @@
 			</tbody>
 		</table>
 
-		<script>
-			$(document).ready(function () {
-				$('#configTable').DataTable({
-					"pageLength": 25,
-					"lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ],
-					"paging": true,
-					"lengthChange": true,
-					"searching": true,
-					"ordering": true,
-					"info": true,
-					"autoWidth": false,
-					"responsive": true,
-					"order": [{ "idx": 2, "dir": 'asc' }, { "idx": 1, "dir": 'asc' }],  
-					"columnDefs": [
-						{ width: '2%', targets: [0] }, 
-						{ width: '5%', targets: [1] }, 
-						{ orderable: false, targets: [0] }
-					],
-					initComplete: function() {
-						$(this).show(); // Show table after DataTables is ready
-					}
-				});
-			});
-		</script>
+		<script th:src="@{/js/admin.js}"></script>
     </main>
 </body>
 </html>

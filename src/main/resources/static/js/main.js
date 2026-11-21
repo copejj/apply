@@ -2,16 +2,14 @@ const pageModal = document.getElementById('pageModal');
 const pageContent = document.getElementById('pageContent');
 const closeModalBtn = document.getElementById('closeModal');
 
-closeModalBtn.addEventListener('click', () => {
-	pageModal.close();
-});
-
-// Close modal when clicking outside (for <dialog> element)
-pageModal.addEventListener('click', (event) => {
-	if (event.target === pageModal) {
-		pageModal.close();
-	}
-});
+if (closeModalBtn && pageModal) {
+	closeModalBtn.addEventListener('click', () => pageModal.close());
+}
+if (pageModal) {
+	pageModal.addEventListener('click', (event) => {
+		if (event.target === pageModal) pageModal.close();
+	});
+}
 
 function submitForm(btn, configMsg) {
     const form = btn.closest('form');
@@ -235,3 +233,41 @@ function copyInvite(btn) {
 function confirmDelete() {
     return confirm("Are you absolutely sure you want to delete this item? This action cannot be undone.");
 }
+
+document.addEventListener('click', (event) => {
+	const submitBtn = event.target.closest('[data-confirm-submit]');
+	if (submitBtn) {
+		submitForm(submitBtn, submitBtn.getAttribute('data-confirm-submit'));
+		return;
+	}
+
+	const deleteBtn = event.target.closest('[data-confirm-delete]');
+	if (deleteBtn && !confirmDelete()) {
+		event.preventDefault();
+		return;
+	}
+
+	const copyInviteBtn = event.target.closest('[data-copy-invite]');
+	if (copyInviteBtn) {
+		copyInvite(copyInviteBtn);
+	}
+
+	const addAddressBtn = event.target.closest('[data-add-address]');
+	if (addAddressBtn) {
+		addAddress();
+		return;
+	}
+
+	const removeAddressBtn = event.target.closest('[data-remove-address]');
+	if (removeAddressBtn) {
+		removeAndReindex(removeAddressBtn);
+		return;
+	}
+});
+
+document.addEventListener('input', (event) => {
+	const parseInput = event.target.closest('[data-parse-address]');
+	if (parseInput) {
+		parse_address(parseInput);
+	}
+});

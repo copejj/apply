@@ -2,69 +2,69 @@
 <html xmlns:th="http://www.thymeleaf.org" 
 	xmlns:layout="http://www.ultraq.net.nz"
 	layout:decorate="~{layout/default}">
-	<body>
-        <div layout:fragment="content" class="mt-4"> 
-            <form th:action="@{/companies/save}" th:object="${company}" th:method="post">
-                <input type="hidden" th:field="*{companyId}" />
-                <div th:if="${company.companyId != null}" class="mb-3">
-                    <a th:href="@{/logs/create(companyId=${company.companyId})}" class="btn">
-                        <i class="fa-solid fa-plus"></i> Add New Application
-                    </a>
+<body>
+    <div layout:fragment="content" class="mt-4"> 
+        <form th:action="@{/companies/save}" th:object="${company}" th:method="post">
+            <input type="hidden" th:field="*{companyId}" />
+            <div th:if="${company.companyId != null}" class="mb-3">
+                <a th:href="@{/logs/create(companyId=${company.companyId})}" class="btn">
+                    <i class="fa-solid fa-plus"></i> Add New Application
+                </a>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <label th:for="companyName" class="form-label" th:text="${labelSettings['company_name']}">company name</label>
+                    <input th:field="*{companyName}" type="text" 
+                        class="form-control" th:classappend="${#fields.hasErrors('companyName')} ? 'is-invalid' : ''" />
+                    <div th:if="${#fields.hasErrors('companyName')}" th:errors="*{companyName}" class="invalid-feedback"></div>
                 </div>
 
-                <div class="row g-3 mb-3">
-                    <div class="col-md-4">
-                        <label th:for="companyName" class="form-label" th:text="${labelSettings['company_name']}">company name</label>
-                        <input th:field="*{companyName}" type="text" 
-                            class="form-control" th:classappend="${#fields.hasErrors('companyName')} ? 'is-invalid' : ''" />
-                        <div th:if="${#fields.hasErrors('companyName')}" th:errors="*{companyName}" class="invalid-feedback"></div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label th:for="companyEmail" class="form-label" th:text="${labelSettings['email']}">company email</label>
-                        <input th:field="*{companyEmail}" type="email" class="form-control" />
-                    </div>
-
-                    <div class="col-md-4">
-                        <label th:for="companyWebsite" class="form-label" th:text="${labelSettings['website']}">company website</label>
-                        <div class="input-group">
-                            <input th:field="*{companyWebsite}" type="text" class="form-control" placeholder="https://..." />
-                            <a th:if="*{companyId != null}" th:href="*{companyWebsite}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary" title="Visit Site">
-                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                            </a>
-                        </div>
-                    </div>
+                <div class="col-md-4">
+                    <label th:for="companyEmail" class="form-label" th:text="${labelSettings['email']}">company email</label>
+                    <input th:field="*{companyEmail}" type="email" class="form-control" />
                 </div>
 
-                <div class="row g-3 mb-4">
-                    <div class="col-md-4">
-                        <label th:for="companyPhone" class="form-label" th:text="${labelSettings['phone']}">company phone</label>
-                        <input th:field="*{companyPhone}" type="text" class="form-control" />
-                    </div>
-                    <div class="col-md-4">
-                        <label th:for="companyFax" class="form-label" th:text="${labelSettings['fax']}">company fax</label>
-                        <input th:field="*{companyFax}" type="text" class="form-control" />
-                    </div>
-                </div>
-
-                <!-- ADDRESSES SECTION -->
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Addresses</h5>
-                        <button type="button" class="btn btn-sm btn-success" onclick="addAddress()">+ Add Address</button>
-                    </div>
-                    <div id="address-container">
-                        <th:block th:each="addr, iter : ${company.addresses}">
-                            <div th:replace="~{fragments/address-row :: addressForm(index=${iter.index})}"></div>
-                        </th:block>
+                <div class="col-md-4">
+                    <label th:for="companyWebsite" class="form-label" th:text="${labelSettings['website']}">company website</label>
+                    <div class="input-group">
+                        <input th:field="*{companyWebsite}" type="text" class="form-control" placeholder="https://..." />
+                        <a th:if="*{companyId != null}" th:href="*{companyWebsite}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary" title="Visit Site">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </a>
                     </div>
                 </div>
+            </div>
 
-                <div th:replace="~{fragments/forms :: submit-save-cancel(cancelUrl='/companies')}"></div>
-            </form>		
-            <template id="address-template">
-                <div th:replace="~{fragments/address-row :: addressForm(index=null)}"></div>
-            </template>
-        </div>
-	</body>
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label th:for="companyPhone" class="form-label" th:text="${labelSettings['phone']}">company phone</label>
+                    <input th:field="*{companyPhone}" type="text" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label th:for="companyFax" class="form-label" th:text="${labelSettings['fax']}">company fax</label>
+                    <input th:field="*{companyFax}" type="text" class="form-control" />
+                </div>
+            </div>
+
+            <!-- ADDRESSES SECTION -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Addresses</h5>
+                    <button type="button" class="btn btn-sm btn-success" data-add-address="true">+ Add Address</button>
+                </div>
+                <div id="address-container">
+                    <th:block th:each="addr, iter : ${company.addresses}">
+                        <div th:replace="~{fragments/address-row :: addressForm(index=${iter.index})}"></div>
+                    </th:block>
+                </div>
+            </div>
+
+            <div th:replace="~{fragments/forms :: submit-save-cancel(cancelUrl='/companies')}"></div>
+        </form>		
+        <template id="address-template">
+            <div th:replace="~{fragments/address-row :: addressForm(index=null)}"></div>
+        </template>
+    </div>
+</body>
 </html>

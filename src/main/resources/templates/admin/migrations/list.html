@@ -4,7 +4,7 @@
 	<!-- Added structural grid classes directly onto the container element hook -->
 	<main layout:fragment="content" class="container-fluid py-3">
 
-		<table id="userTable" class="datatables table table-striped table-hover stripe"
+		<table id="userTable" data-admin-table="migrations" class="datatables table table-striped table-hover stripe"
 			style="width:100%;display:none;">
 			<thead>
 				<tr>
@@ -26,29 +26,7 @@
 			</tbody>
 		</table>
 
-		<!-- Explicitly included th:inline="none" to prevent Thymeleaf from parsing the JS array brackets -->
-		<script th:inline="none">
-			$(document).ready(function () {
-				$('#userTable').DataTable({
-					"pageLength": -1,
-					"lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
-					"paging": true,
-					"lengthChange": true,
-					"searching": true,
-					"ordering": true,
-					"info": true,
-					"autoWidth": false,
-					"order": [[0, 'asc']],
-					"columnDefs": [
-						{ width: '200px', targets: [0, 1] }
-					],
-					"responsive": true,
-					initComplete: function () {
-						$(this).show();
-					}
-				});
-			});
-		</script>
+		<script th:src="@{/js/admin.js}"></script>
 	</main>
 </body>
 
